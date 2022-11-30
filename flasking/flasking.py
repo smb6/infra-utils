@@ -4,6 +4,8 @@ from flask import Flask, request, redirect, url_for, render_template
 from markupsafe import escape
 
 """
+https://youtu.be/9MHYHgh4jYc
+
 HOWTO:
 
 run from commmad line:
@@ -35,7 +37,8 @@ def home():
 @app.route("/<name>")
 def user(name):
     # return f"Hello, {name}!"
-    return render_template("user.html", content=name)
+    # return render_template("user.html", content=name)
+    return f"<h1>{name}</h1>"
 
 
 @app.route('/about')
@@ -79,10 +82,16 @@ def show_subpath(subpath):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        return do_the_login()
-    else:
-        return show_the_login_form()
+    if request.method == "POST":
+        user = request.form['nm']
+        return redirect(url_for("user", name=user))
+    elif request.method == "GET":
+        return render_template("login.html")
+
+    # if request.method == 'POST':
+    #     return do_the_login()
+    # else:
+    #     return show_the_login_form()
 
 
 def do_the_login():
