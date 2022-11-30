@@ -1,14 +1,52 @@
 import inspect
 
-from flask import Flask, request
+from flask import Flask, request, redirect, url_for, render_template
 from markupsafe import escape
+
+"""
+HOWTO:
+
+run from commmad line:
+
+flask --app flasking/flasking run
+python flasking/flasking.py
+"""
 
 app = Flask(__name__)
 
+app.config['CORS_ORIGINS'] = ['http://localhost:5000', 'http://127.0.0.1:5000']
+app.config['CORS_HEADERS'] = ['Content-Type']
+
 
 @app.route("/")
+# @cross_origin()
 def hello_world():
-    return "<p>Hello, World!</p>"
+    # return "<p>Hello, World!</p>"
+    return render_template("index.html")
+
+
+@app.route("/home")
+# @cross_origin()
+def home():
+    return f"Hello this this is {inspect.currentframe().f_code.co_name}.\n " \
+           f"<h1>home<h1>"
+
+
+@app.route("/<name>")
+def user(name):
+    # return f"Hello, {name}!"
+    return render_template("user.html", content=name)
+
+
+@app.route('/about')
+def about():
+    return 'The about page'
+
+
+@app.route('/admin')
+def admin():
+    return redirect(url_for("user", name="admin!!!"))
+    # return redirect(url_for("about"))
 
 
 @app.route("/escaped/<name>")
@@ -39,16 +77,6 @@ def show_subpath(subpath):
     return f'Subpath {escape(subpath)}'
 
 
-@app.route('/projects/')
-def projects():
-    return 'The project page'
-
-
-@app.route('/about')
-def about():
-    return 'The about page'
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -66,4 +94,4 @@ def show_the_login_form():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
