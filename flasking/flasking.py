@@ -1,7 +1,10 @@
 import inspect
+import sqlalchemy
 
-from flask import Flask, request, redirect, url_for, render_template
+from flask import Flask, redirect, url_for, render_template, request, session, flash
+from datetime import timedelta
 from markupsafe import escape
+from flask_sqlalchemy import SQLAlchemy
 
 """
 https://youtu.be/9MHYHgh4jYc
@@ -15,6 +18,8 @@ python flasking/flasking.py
 """
 
 app = Flask(__name__)
+app.secret_key = "hello world"
+app.permanent_session_lifetime = timedelta(minutes=1)
 
 app.config['CORS_ORIGINS'] = ['http://localhost:5000', 'http://127.0.0.1:5000']
 app.config['CORS_HEADERS'] = ['Content-Type']
@@ -35,9 +40,9 @@ def home():
 
 
 @app.route("/<name>")
-def user(name):
+def name(name):
     # return f"Hello, {name}!"
-    # return render_template("user.html", content=name)
+    # return render_template("user_old.html", content=name)
     return f"<h1>{name}</h1>"
 
 
@@ -83,15 +88,46 @@ def show_subpath(subpath):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == "POST":
+        session.permanent = True
         user = request.form['nm']
-        return redirect(url_for("user", name=user))
+        session["user"] = user
+        # return redirect(url_for("user", name=user))
+        flash(f"Login successful")
+        return redirect(url_for("user"))
     elif request.method == "GET":
+        if "user" in session:
+            flash(f"User {session.get('user')} already logged in")
+            return redirect(url_for("user"))
+
         return render_template("login.html")
 
     # if request.method == 'POST':
     #     return do_the_login()
     # else:
     #     return show_the_login_form()
+
+
+@app.route("/user")
+def user():
+    if "user" in session:
+        user = session.get("user")
+        # return f"<h1>{user}</h1>"
+        return render_template("user.html", user=user)
+    else:
+        flash("You are not logged in")
+        return redirect(url_for("login"))
+
+
+@app.route("/logout")
+def logout():
+    user = session.get("user")
+    session.pop("user", None)
+    if not session.get("user"):
+        if user:
+            flash(f"User {user} successfully logged out", "info")
+        else:
+            flash(f"Already logged out", "info")
+    return redirect(url_for("login"))
 
 
 def do_the_login():

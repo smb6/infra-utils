@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>User home page</title>
-</head>
-<body>
-<h1>HTML rendered page</h1>
-<p>Hello {{content}}!</p>
-{% for n in range(0, 10) %}
-    <p>{{n}}</p>
-{% endfor %}
-
-</body>
-</html>
+{% extends "base.html" %}
+{% block title%}User{% endblock %}
+{% block content%}
+  {% with messages = get_flashed_messages() %}
+      {% if messages %}
+          {% for msg in messages %}
+              <p>{{msg}}</p>
+          {% endfor %}
+      {% endif %}
+  {% endwith %}
+<p>Welcome {{user}}</p>
+{% endblock %}
