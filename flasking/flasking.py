@@ -1,9 +1,9 @@
 import inspect
-import sqlalchemy
 
 from flask import Flask, redirect, url_for, render_template, request, session, flash
 from datetime import timedelta
 from markupsafe import escape
+from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy import SQLAlchemy
 
 """
@@ -20,9 +20,23 @@ python flasking/flasking.py
 app = Flask(__name__)
 app.secret_key = "hello world"
 app.permanent_session_lifetime = timedelta(minutes=1)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.sqlite3"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 app.config['CORS_ORIGINS'] = ['http://localhost:5000', 'http://127.0.0.1:5000']
 app.config['CORS_HEADERS'] = ['Content-Type']
+
+db = SQLAlchemy(app)
+
+
+class Users(db.Model):
+    _id = db.Column("id", db.Integer, primary_key=True)
+    _name = db.Column("name", db.String)
+    _email = db.Column("email", db.String)
+
+    def __init__(self, name, email):
+        self._name = name
+        self._email = email
 
 
 @app.route("/")
@@ -92,6 +106,14 @@ def login():
         user = request.form['nm']
         session["user"] = user
         # return redirect(url_for("user", name=user))
+
+        if Users.__:
+            pass
+        else:
+            _user = Users(user, "")
+            db.session.add(_user)
+            db.commit()
+
         flash(f"Login successful")
         return redirect(url_for("user"))
     elif request.method == "GET":
@@ -107,12 +129,20 @@ def login():
     #     return show_the_login_form()
 
 
-@app.route("/user")
+@app.route("/user", methods=["POST", "GET"])
 def user():
+    email = None
     if "user" in session:
         user = session.get("user")
+        if request.method == "POST":
+            email = request.form["email"]
+            session["email"] = email
+        elif request.method == "GET":
+            if "email" in session:
+                email = session.get("email")
         # return f"<h1>{user}</h1>"
-        return render_template("user.html", user=user)
+        # return render_template("user.html", user=user)
+        return render_template("user.html", user=email)
     else:
         flash("You are not logged in")
         return redirect(url_for("login"))
@@ -122,6 +152,7 @@ def user():
 def logout():
     user = session.get("user")
     session.pop("user", None)
+    session.pop("email", None)
     if not session.get("user"):
         if user:
             flash(f"User {user} successfully logged out", "info")
@@ -139,4 +170,5 @@ def show_the_login_form():
 
 
 if __name__ == "__main__":
+    db.create_all()
     app.run(debug=True)
