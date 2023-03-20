@@ -4,7 +4,6 @@ from flask import Flask, redirect, url_for, render_template, request, session, f
 from datetime import timedelta
 from markupsafe import escape
 from flask_sqlalchemy import SQLAlchemy
-from flask_sqlalchemy import SQLAlchemy
 
 """
 https://youtu.be/9MHYHgh4jYc
